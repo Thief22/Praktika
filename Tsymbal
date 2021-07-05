@@ -1,0 +1,147 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define PTH "data.txt"
+
+#define SUCCESS 0
+#define NO_FILE 1
+
+#include <string.h>
+#include <stdio.h>
+#include <locale.h>
+#include <stdlib.h>
+
+void AddBook(char* author, char* title, int circulation, float price);
+int FetchData();
+int FetchData_C();
+int FetchByTitle(char* title);
+
+int main()
+{
+    int punct, circulation;
+    char author[256], title[256];
+    float price;
+
+    setlocale(LC_ALL, "rus");
+
+    while (true) {
+        printf("1.Add a book\n2.Fetch all\n3.Fetch C Language books\n4.Get data by name\n0. Exit\n");
+        scanf_s(" %d", &punct);
+
+        switch (punct) {
+        case 1:
+            printf("Input title of the book\n");
+            scanf(" %[^\n]%*c", &title);
+
+            printf("Input author of the book\n");
+            scanf("%[^\n]%*c", &author);
+
+            printf("Input circulation of the book\n");
+            scanf_s("%d", &circulation);
+
+            printf("Input price of the book\n");
+            scanf_s("%f", &price);
+
+            AddBook(title, author, circulation, price);
+            break;
+        case 2:
+            if (FetchData() == NO_FILE)
+                printf("No existing package\n");
+            break;
+        case 3:
+            if (FetchData_C() == NO_FILE)
+                printf("No existing package\n");
+            break;
+        case 4:
+            printf("Input title of the book\n");
+            scanf(" %[^\n]%*c", &title);
+
+            FetchByTitle(title);
+            break;
+        default:
+            printf("Till next time!");
+            return 0;
+        }
+    }
+
+    system("PAUSE");
+}
+
+void AddBook(char* author, char* title, int circulation, float price) {
+    FILE* file = fopen(PTH, "ab");
+
+    fprintf(file, "%s;%s;%i;%.2f;\n", author, title, circulation, price);
+
+    fclose(file);
+}
+
+int FetchData() {
+    FILE* file = fopen(PTH, "rb");
+    char currLine[256];
+    int i = 0;
+
+    if (!file)
+        return NO_FILE;
+
+    while (fgets(currLine, sizeof(currLine), file) != NULL) {
+        printf("%i) %s\n", ++i, currLine);
+    }
+
+    fclose(file);
+
+    return SUCCESS;
+}
+
+int FetchData_C()
+{
+    FILE* file = fopen(PTH, "rb");
+    char currLine[256];
+    int i = 0;
+
+    if (!file)
+        return NO_FILE;
+
+    while (fgets(currLine, sizeof(currLine), file) != NULL) {
+        char* part = strtok(currLine, ";");
+        char* token = strtok(_strdup(part), " ,.-/:;");
+        while (token) {
+            if (strcmp(token, "C") == 0)
+                printf("%i) %s\n", ++i, currLine);
+            else if (strcmp(token, "С") == 0)
+                printf("%i) %s\n", ++i, currLine);
+            token = strtok(NULL, " ,.-/:;");
+        }
+
+    }
+
+    if (i == 0)
+        printf("No books with C lang theme! You can try to add one:\n");
+    else
+        printf("Books with C lang theme: %i\n", i);
+
+    fclose(file);
+
+    return SUCCESS;
+}
+
+int FetchByTitle(char* title)
+{
+    FILE* file = fopen(PTH, "rb");
+    char currLine[256];
+    int i = 0;
+
+    if (!file)
+        return NO_FILE;
+
+    while (fgets(currLine, sizeof(currLine), file) != NULL) {
+        char* part = strtok(currLine, ";");
+        if (strcmp(title, part) == 0) {
+            printf("%i) %s\n", ++i, part);
+        }
+    }
+
+    if (i == 0)
+        printf("No books with same title! You can try to add one:\n");
+
+    fclose(file);
+
+    return SUCCESS;
+}
